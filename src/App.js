@@ -1,17 +1,17 @@
 import "./App.css";
-import { useState } from "react";
+import useStore from "./store.js";
 import SearchComponent from "./SearchComponent";
 import DataInfoComponent from "./DataInfoComponent";
 
 function App() {
-  const [characterBasicData, setCharacterBasicData] = useState(undefined);
-  const [unionData, setUnionData] = useState(undefined);
+  const { characterBasicData, statData, hyperStatData, unionData, unionRaiderData } = useStore();
+
   return (
     <div className="App flex-col md:flex md:justify-center md:items-center">
-      {characterBasicData ? (
-        <DataInfoComponent characterBasicData={characterBasicData} unionData={unionData} />
+      {characterBasicData && statData && hyperStatData && unionData && unionRaiderData ? (
+        <DataInfoComponent />
       ) : (
-        <SearchComponent setCharacterBasicData={setCharacterBasicData} setUnionData={setUnionData} />
+        <SearchComponent />
       )}
     </div>
   );

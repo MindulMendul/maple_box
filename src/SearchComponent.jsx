@@ -1,7 +1,17 @@
+import useStore from "./store.js";
 import { useState } from "react";
-import { axiosInstance } from "./axiosClient.js";
 
-export default function SearchComponent({ setCharacterBasicData, setUnionData }) {
+import {
+  getCharacterBasic,
+  getCharacterStat,
+  getCharacterHyperStat,
+  getOCID,
+  getUserUnion,
+  getUserUnionRaider,
+} from "./axiosFunc.js";
+
+export default function SearchComponent() {
+  const { setCharacterBasicData, setStatData, setHyperStatData, setUnionData, setUnionRaiderData } = useStore();
   const [name, setName] = useState("");
 
   const handleChange = (e) => {
@@ -9,92 +19,32 @@ export default function SearchComponent({ setCharacterBasicData, setUnionData })
   };
 
   const submit = async () => {
-    let ocid = undefined;
-    try {
-      const result = await axiosInstance.get(`/maplestory/v1/id`, {
-        params: { character_name: name },
-        headers: { "x-nxopen-api-key": process.env.REACT_APP_APIKey },
-      });
-      ocid = result?.data.ocid;
-    } catch (err) {
-      // Error Schema
-      // {
-      //   "error": {
-      //     "name": "string",
-      //     "message": "string"
-      //   }
-      // }
-      console.log(err.response.data.error);
-      return;
-    }
-    console.log(ocid);
+    const ocid = await getOCID(name);
+    if (!ocid) return;
 
     // 캐릭터 기본 정보 저장
-    let characterBasicData = undefined;
-    try {
-      const result = await axiosInstance.get(`/maplestory/v1/character/basic`, {
-        params: { ocid: ocid },
-        headers: { "x-nxopen-api-key": process.env.REACT_APP_APIKey },
-      });
-      characterBasicData = result?.data;
-    } catch (err) {
-      // Error Schema
-      // {
-      //   "error": {
-      //     "name": "string",
-      //     "message": "string"
-      //   }
-      // }
-      console.log(err.response.data.error);
-      return;
-    }
+    const characterBasicData = await getCharacterBasic(ocid);
+    if (!characterBasicData) return;
     setCharacterBasicData(characterBasicData);
 
-    // // 유니온 정보 저장
-    let unionData = undefined;
-    try {
-      const result = await axiosInstance.get(`/maplestory/v1/user/union`, {
-        params: { ocid: ocid },
-        headers: { "x-nxopen-api-key": process.env.REACT_APP_APIKey },
-      });
-      unionData = result?.data;
-    } catch (err) {
-      // Error Schema
-      // {
-      //   "error": {
-      //     "name": "string",
-      //     "message": "string"
-      //   }
-      // }
-      console.log(err.response.data.error);
-      return;
-    }
+    const statData = await getCharacterStat(ocid);
+    if (!statData) return;
+    setStatData(statData);
 
-    // 유니온 공격대 정보 저장
-    let unionRaiderData = undefined;
-    try {
-      console.log(ocid);
-      const result = await axiosInstance.get(`/maplestory/v1/user/union-raider`, {
-        params: { ocid: ocid },
-        headers: { "x-nxopen-api-key": process.env.REACT_APP_APIKey },
-      });
-      unionRaiderData = result?.data;
-    } catch (err) {
-      // Error Schema
-      // {
-      //   "error": {
-      //     "name": "string",
-      //     "message": "string"
-      //   }
-      // }
-      console.log(err);
-      //console.log(err.response.data.error);
-      return;
-    }
+    // 캐릭터 하이퍼스텟 저장
+    const hyperStatData = await getCharacterHyperStat(ocid);
+    if (!hyperStatData) return;
+    setHyperStatData(hyperStatData);
 
-    console.log(unionData);
-    console.log(unionRaiderData);
-    setUnionData({ ...unionData, ...unionRaiderData });
+    // 유니온 정보 저장
+    const unionData = await getUserUnion(ocid);
+    if (!unionData) return;
+    setUnionData(unionData);
+
+    // 유니온 공격대 저장
+    const unionRaiderData = await getUserUnionRaider(ocid);
+    if (!unionRaiderData) return;
+    setUnionRaiderData(unionRaiderData);
   };
 
   return (
